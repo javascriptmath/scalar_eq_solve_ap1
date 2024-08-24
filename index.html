@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solving \(2^x + x = 5\)</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    body {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      font-family: Arial, sans-serif;
+    }
+    #graph {
+      width: 100%;
+      height: 600px;
+    }
+    h1 {
+      color: #dcdcaa;
+      text-align: center;
+    }
+    #solution {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+      color: #d4d4d4;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #d4d4d4;
+      text-align: center;
+    }
+    th {
+      background-color: #333333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Solving \(2^x + x = 5\)</h1>
+  <div id="graph"></div>
+  <div id="solution"></div>
+  <div id="result-table"></div>
+  <script>
+    function plotFunctions(f, g, range, solution) {
+      const x_values = [], f_values = [], g_values = [];
+      const num_points = 100;
+      const step = (range[1] - range[0]) / (num_points - 1);
+      for (let i = 0; i < num_points; i++) {
+        const x = range[0] + i * step;
+        x_values.push(x);
+        f_values.push(f(x));
+        g_values.push(g(x));
+      }
+      const trace_f = {
+        x: x_values,
+        y: f_values,
+        mode: 'lines',
+        name: '2^x + x',
+        line: { color: '#569cd6' }
+      };
+      const trace_g = {
+        x: x_values,
+        y: g_values,
+        mode: 'lines',
+        name: '5',
+        line: { color: '#ce9178' }
+      };
+      const trace_solution = {
+        x: [solution.x],
+        y: [solution.g_x],
+        mode: 'markers',
+        name: 'Solution',
+        marker: {
+          color: 'red',
+          size: 10,
+          symbol: 'cross'
+        }
+      };
+      const layout = {
+        paper_bgcolor: '#1e1e1e',
+        plot_bgcolor: '#1e1e1e',
+        xaxis: { title: 'x', color: '#d4d4d4' },
+        yaxis: { title: 'y', color: '#d4d4d4' },
+        font: { color: '#d4d4d4' }
+      };
+      Plotly.newPlot('graph', [trace_f, trace_g, trace_solution], layout);
+    }
+
+    function displaySolution(root) {
+      const solutionHtml = `Solution \\(x_0\\) where \\(2^x + x = 5\\) is \\(${root.toFixed(6)}\\)`;
+      document.getElementById('solution').innerHTML = solutionHtml;
+    }
+
+    function displayTable(points) {
+      let tableHtml = '<table><tr><th>Iteration</th><th>x</th><th>2^x + x</th><th>5</th></tr>';
+      points.forEach(point => {
+        tableHtml += `<tr>
+          <td>${point.iteration}</td>
+          <td>${point.x.toFixed(6)}</td>
+          <td>${point.f_x.toFixed(6)}</td>
+          <td>${point.g_x.toFixed(6)}</td>
+        </tr>`;
+      });
+      tableHtml += '</table>';
+      document.getElementById('result-table').innerHTML = '<br>Details:<br>' + tableHtml;
+    }
+
+    function derivative(f, x) {
+      const h = 1e-7;
+      return (f(x + h) - f(x)) / h;
+    }
+
+    function solveWithNewton(f, g, iterations) {
+      const points = [];
+      let x = 0;
+      const h = x => f(x) - g(x);
+      for (let i = 0; i < iterations; i++) {
+        x = x - h(x) / derivative(h, x);
+        points.push({
+          iteration: i + 1, x,
+          f_x: f(x), g_x: g(x)
+        });
+      }
+      return { root: x, points };
+    }
+
+    const f = x => Math.pow(2, x) + x;
+    const g = x => 5;
+    
+    const ITERATIONS = 7;
+    const result = solveWithNewton(f, g, ITERATIONS);
+
+    plotFunctions(f, g, [-3, 3], result.points.at(-1));
+    displaySolution(result.root);
+    displayTable(result.points);
+  </script>
+</body>
+</html>
